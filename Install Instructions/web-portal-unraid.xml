@@ -1,0 +1,53 @@
+<?xml version="1.0"?>
+<ContainerTemplates>
+  <Template>
+    <Name>web-portal</Name>
+    <Repository>node:lts-alpine</Repository>
+    <Registry>Docker Hub</Registry>
+    <Overview>Web Portal for Access and User management (Node LTS)</Overview>
+    <Network>bridge</Network>
+    <WebUI>http://[IP]:[PORT:3000]</WebUI>
+    <Support/>
+    <Project>Neighborhood App</Project>
+    <Category>Utility</Category>
+    <Config>
+      <Env>
+        <Variable>
+          <Key>TZ</Key>
+          <Value>America/New_York</Value>
+          <Description>Timezone</Description>
+        </Variable>
+        <Variable>
+          <Key>HOST_OS</Key>
+          <Value>Unraid</Value>
+          <Description>Host operating system identifier</Description>
+        </Variable>
+        <Variable>
+          <Key>HOST_HOSTNAME</Key>
+          <Value>R730</Value>
+          <Description>Host name</Description>
+        </Variable>
+        <Variable>
+          <Key>HOST_CONTAINERNAME</Key>
+          <Value>neighborhood-web-portal</Value>
+          <Description>Container name to show inside the container environment</Description>
+        </Variable>
+      </Env>
+      <Port>
+        <HostPort>3000</HostPort>
+        <ContainerPort>3000</ContainerPort>
+        <Protocol>tcp</Protocol>
+      </Port>
+      <Volume>
+        <HostDir>/path/to/your/repo/</HostDir>
+        <ContainerDir>/app</ContainerDir>
+        <Mode>rw</Mode>
+      </Volume>
+      <ExtraParameters>--pids-limit 2048 -l net.unraid.docker.managed=dockerman -l net.unraid.docker.webui='http://[IP]:[PORT:3000]'</ExtraParameters>
+      <TemplateURL/>
+      <UpdateLatest/>
+    </Config>
+    <Postinstall>sh -c "apk add --no-cache curl jq && cd /app && npm install && npm start"</Postinstall>
+    <Note>Requires a MongoDB container. Create an official `mongo` container with default mappings (port 27017 and persistent volume at /data/db) and set `MONGO_URL` accordingly (e.g. mongodb://mongo:27017/web-portal).</Note>
+  </Template>
+</ContainerTemplates>

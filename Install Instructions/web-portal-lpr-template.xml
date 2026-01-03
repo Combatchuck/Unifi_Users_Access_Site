@@ -1,0 +1,58 @@
+<?xml version="1.0"?>
+<ContainerTemplates>
+  <Template>
+    <Name>web-portal-lpr</Name>
+    <Repository>python:3.11-slim</Repository>
+    <Registry>Docker Hub</Registry>
+    <Overview>LPR Capture service (reads Unifi Protect and stores LPR artifacts)</Overview>
+    <Network>bridge</Network>
+    <WebUI/>
+    <Support/>
+    <Project>Neighborhood App</Project>
+    <Category>Utility</Category>
+    <Config>
+      <Env>
+        <Variable>
+          <Key>TZ</Key>
+          <Value>America/New_York</Value>
+          <Description>Timezone</Description>
+        </Variable>
+        <Variable>
+          <Key>UNIFI_PROTECT_USERNAME</Key>
+          <Value>your_protect_username</Value>
+          <Description>Local Protect username (if using local credentials)</Description>
+        </Variable>
+        <Variable>
+          <Key>UNIFI_PROTECT_PASSWORD</Key>
+          <Value>your_protect_password</Value>
+          <Description>Protect password (do NOT commit credentials)</Description>
+        </Variable>
+        <Variable>
+          <Key>UNIFI_PROTECT_API_KEY</Key>
+          <Value>your_protect_api_key</Value>
+          <Description>Protect API key (preferred for API access; keep secret)</Description>
+        </Variable>
+        <Variable>
+          <Key>CONTAINER_CMD</Key>
+          <Value>---catchup</Value>
+          <Description>Command passed to the container entrypoint (default: ---catchup)</Description>
+        </Variable>
+      </Env>
+      <Volume>
+        <HostDir>/path/to/your/repo/</HostDir>
+        <ContainerDir>/app</ContainerDir>
+        <Mode>ro</Mode>
+      </Volume>
+      <Volume>
+        <HostDir>/path/to/your/lpr_data/</HostDir>
+        <ContainerDir>/var/lib/lpr</ContainerDir>
+        <Mode>rw</Mode>
+      </Volume>
+      <ExtraParameters>--pids-limit 2048 -l net.unraid.docker.managed=dockerman</ExtraParameters>
+      <TemplateURL/>
+      <UpdateLatest/>
+    </Config>
+    <Postinstall>/app/docker/unraid_entrypoint.sh</Postinstall>
+    <Note>LPR capture runs in a Python container (`python:3.11-slim`). Use the `UNIFI_PROTECT_API_KEY` when possible and avoid committing secrets to the repository. If you need to update the existing `web-portal-lpr.xml` in this folder, note that file permissions may restrict direct editing — replace it via the Unraid UI or via file manager if necessary.</Note>
+  </Template>
+</ContainerTemplates>

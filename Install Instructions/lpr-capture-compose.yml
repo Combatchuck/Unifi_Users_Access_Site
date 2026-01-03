@@ -1,0 +1,25 @@
+version: '3.9'
+
+services:
+  lpr-capture:
+    image: python:3.11-slim
+    container_name: neighborhood-lrp-capture
+    network_mode: bridge
+    pids_limit: 2048
+    environment:
+    - TZ=America/New_York
+    - HOST_OS=Unraid
+    - HOST_HOSTNAME=R730
+    - HOST_CONTAINERNAME=neighborhood-lrp-capture
+    - UNIFI_PROTECT_USERNAME=your_protect_username
+    - UNIFI_PROTECT_PASSWORD=your_protect_password
+    - UNIFI_PROTECT_API_KEY=your_protect_api_key
+    # NOTE: prefer setting UNIFI_PROTECT_API_KEY and avoid storing credentials in version control.
+    - CONTAINER_CMD=---catchup
+    labels:
+    - "net.unraid.docker.managed=dockerman"
+    volumes:
+    - /path/to/your/repo:/app:ro
+    - /path/to/your/lpr_data:/var/lib/lpr:rw
+    command: /app/docker/unraid_entrypoint.sh
+    restart: unless-stopped

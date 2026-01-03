@@ -1,0 +1,55 @@
+version: '3.9'
+
+services:
+  web-portal:
+    image: node:lts-alpine
+    container_name: neighborhood-web-portal
+    ports:
+      - "3000:3000"
+    environment:
+      - TZ=America/New_York
+      - HOST_OS=Unraid
+      - HOST_HOSTNAME=R730
+      - HOST_CONTAINERNAME=neighborhood-web-portal
+    labels:
+      - "net.unraid.docker.managed=dockerman"
+      - "net.unraid.docker.webui=http://[IP]:[PORT:3000]"
+    pids_limit: 2048
+    volumes:
+      - /path/to/your/repo:/app:rw
+    command: sh -c "apk add --no-cache curl jq && cd /app && npm install && npm start"
+    restart: unless-stopped
+
+  mongo:
+    image: mongo:latest
+    container_name: web-portal-mongo
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - /path/to/your/mongo/data:/data/db
+
+  lpr-capture:
+    image: python:3.11-slim
+    container_name: neighborhood-lrp-capture
+    restart: unless-stopped
+    environment:
+      - TZ=America/New_York
+      - UNIFI_PROTECT_USERNAME=your_protect_username
+      - UNIFI_PROTECT_PASSWORD=your_protect_password
+      - UNIFI_PROTECT_API_KEY=your_protect_api_key
+      - CONTAINER_CMD=---catchup
+    volumes:
+      - /path/to/your/repo:/app:ro
+      - /path/to/your/lpr_data:/var/lib/lpr:rw
+    command: /app/docker/unraid_entrypoint.sh
+
+# Example: if you prefer an external network named 'proxy-in', uncomment & configure below
+#networks:
+#  proxy-in:
+#    external: true
+
+# Example: if you prefer an external network named 'proxy-in', uncomment & configure below
+#networks:
+#  proxy-in:
+#    external: true
