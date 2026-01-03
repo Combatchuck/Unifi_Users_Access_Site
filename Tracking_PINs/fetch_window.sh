@@ -25,8 +25,11 @@ if [ -z "${UNIFA_BEARER:-}" ] && [ -n "${UNIFA_BEARER_TOKEN:-}" ]; then
   UNIFA_BEARER="$UNIFA_BEARER_TOKEN"
 fi
 
-if [ -z "${UNIFA_API_URL:-}" ] || [ -z "${UNIFA_BEARER:-}" ]; then
-  echo "ERROR: UNIFA_API_URL or UNIFA_BEARER not set in environment or /app/.env" >&2
+# Prefer API_URL (if set) or fall back to UNIFA_API_URL; this allows a single canonical value to be used.
+PROTECT_API_URL="${API_URL:-${UNIFA_API_URL:-}}"
+
+if [ -z "${PROTECT_API_URL:-}" ] || [ -z "${UNIFA_BEARER:-}" ]; then
+  echo "ERROR: API URL (PROTECT_API_URL) or UNIFA_BEARER not set in environment or /app/.env" >&2
   exit 2
 fi
 

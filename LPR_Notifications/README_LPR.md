@@ -36,14 +36,16 @@ This system captures license plate detections from your 2 Ubiquiti Protect **LPR
 
 ### Step 1: Verify Environment Variables
 
-Ensure your `.env` file contains:
+Ensure your `.env` file contains the Protect connection details (do NOT commit credentials):
 
 ```bash
-UNIFI_PROTECT_API_KEY=VU2VgiOnHzLZOX3dTEZFUvF_hztIW3b_
+UNIFI_PROTECT_API_KEY=your_protect_api_key
 UNIFI_PROTECT_USERNAME=your_protect_username
-UNIFI_PROTECT_PASSWORD=asdfSD353--sd
+UNIFI_PROTECT_PASSWORD=your_protect_password
 MONGO_URL=mongodb://localhost:27017/web-portal
 ```
+
+> Note: When deployed via Docker the LPR capture service runs in a Python container (e.g. `python:3.11-slim`). Use the API key when available instead of username/password.
 
 ### Step 2: Start the Python LPR Service
 
@@ -236,8 +238,9 @@ After=network.target
 [Service]
 Type=simple
 User=root
-WorkingDirectory=/Volumes/Docker_Mounts/st-michaels-bay-DEV/web-portal-dev
-ExecStart=/Volumes/Docker_Mounts/st-michaels-bay-DEV/web-portal-dev/.venv/bin/python fast_lpr_capture.py
+WorkingDirectory=/path/to/your/repo
+ExecStart=/path/to/your/repo/.venv/bin/python fast_lpr_capture.py
+# Replace /path/to/your/repo with the local checkout path for the project
 Restart=always
 RestartSec=10
 

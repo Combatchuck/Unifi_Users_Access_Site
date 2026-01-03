@@ -8,9 +8,11 @@ echo ""
 echo "1. Testing Python service connectivity..."
 .venv/bin/python << 'PYTHON'
 import asyncio, os
-os.environ['UNIFI_PROTECT_API_KEY'] = 'VU2VgiOnHzLZOX3dTEZFUvF_hztIW3b_'
-os.environ['UNIFI_PROTECT_USERNAME'] = 'protect_test_user'
-os.environ['UNIFI_PROTECT_PASSWORD'] = 'asdfSD353--sd'
+import os
+os.environ['UNIFI_PROTECT_API_KEY'] = os.getenv('UNIFI_PROTECT_API_KEY', '')
+os.environ['UNIFI_PROTECT_USERNAME'] = os.getenv('UNIFI_PROTECT_USERNAME', '')
+os.environ['UNIFI_PROTECT_PASSWORD'] = os.getenv('UNIFI_PROTECT_PASSWORD', '')
+# Set the above env vars externally before running this test (do not store secrets in repo)
 
 async def test():
     from uiprotect import ProtectApiClient
