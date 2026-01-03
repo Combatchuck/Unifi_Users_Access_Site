@@ -1,0 +1,1190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LPR Dashboard - License Plate Query</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .lpr-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .lpr-header {
+            background: linear-gradient(135deg, #0284c7 0%, #06b6d4 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px rgba(2, 132, 199, 0.2);
+        }
+
+        .lpr-header h1 {
+            margin: 0 0 10px 0;
+            font-size: 32px;
+        }
+
+        .lpr-header p {
+            margin: 0;
+            opacity: 0.9;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .metric-card {
+            background: white;
+            border: 2px solid #cffafe;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(6, 182, 212, 0.1);
+        }
+
+        .metric-card h3 {
+            margin: 0 0 10px 0;
+            color: #0891b2;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .metric-value {
+            font-size: 28px;
+            font-weight: bold;
+            color: #06b6d4;
+            margin: 10px 0;
+        }
+
+        .metric-subtext {
+            font-size: 11px;
+            color: #64748b;
+        }
+
+        .search-section {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .search-section h2 {
+            margin: 0 0 20px 0;
+            color: #1e293b;
+            font-size: 18px;
+        }
+
+        .filter-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .filter-group label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #334155;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .filter-group input,
+        .filter-group select {
+            padding: 10px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            font-size: 14px;
+            font-family: inherit;
+            transition: border-color 0.2s;
+        }
+
+        .filter-group input:focus,
+        .filter-group select:focus {
+            outline: none;
+            border-color: #0284c7;
+            box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.1);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: #0284c7;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #0369a1;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3);
+        }
+
+        .btn-secondary {
+            background: #e2e8f0;
+            color: #334155;
+        }
+
+        .btn-secondary:hover {
+            background: #cbd5e1;
+        }
+
+        .results-section {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 25px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .results-header h2 {
+            margin: 0;
+            color: #1e293b;
+            font-size: 18px;
+        }
+
+        .results-count {
+            font-size: 13px;
+            color: #64748b;
+            background: #f1f5f9;
+            padding: 5px 12px;
+            border-radius: 20px;
+        }
+
+        .results-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .results-table thead {
+            background: #f8fafc;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .results-table th {
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 12px;
+            text-transform: uppercase;
+            color: #475569;
+            letter-spacing: 0.5px;
+        }
+
+        .results-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #e2e8f0;
+            font-size: 14px;
+        }
+
+        .notes-input {
+            width: 100%;
+            padding: 6px 10px;
+            border: 1px solid #cbd5e1;
+            border-radius: 4px;
+            font-size: 13px;
+            font-family: inherit;
+        }
+
+        .notes-input:focus {
+            outline: none;
+            border-color: #0284c7;
+            box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.1);
+        }
+
+        .btn-save-note {
+            padding: 6px 12px;
+            background: #0284c7;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-save-note:hover {
+            background: #0369a1;
+        }
+
+        .results-table tbody tr:hover {
+            background: #f8fafc;
+        }
+
+        .plate-cell {
+            font-family: monospace;
+            font-weight: 600;
+            color: #0284c7;
+            font-size: 15px;
+        }
+
+        .user-cell {
+            color: #475569;
+        }
+
+        .user-cell.unknown {
+            color: #475569;
+        }
+
+        .confidence-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .confidence-high {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .confidence-medium {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .confidence-low {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .notes-input {
+            width: 100%;
+            padding: 6px 10px;
+            border: 1px solid #cbd5e1;
+            border-radius: 4px;
+            font-size: 13px;
+            font-family: inherit;
+        }
+
+        .notes-input:focus {
+            outline: none;
+            border-color: #0284c7;
+            box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.1);
+        }
+
+        .btn-save-note {
+            padding: 6px 12px;
+            background: #0284c7;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-save-note:hover {
+            background: #0369a1;
+        }
+
+        body.dark-mode {
+            background-color: #1a1a1a;
+            color: #e0e0e0;
+        }
+
+        body.dark-mode .lpr-container {
+            background-color: #1a1a1a;
+        }
+
+        body.dark-mode .lpr-header {
+            background: linear-gradient(135deg, #1e3a5f 0%, #0f3a4f 100%);
+        }
+
+        body.dark-mode .metric-card {
+            background: #2d2d2d;
+            border-color: #0f4a5f;
+        }
+
+        body.dark-mode .metric-card h3 {
+            color: #0891b2;
+        }
+
+        body.dark-mode .metric-value {
+            color: #06b6d4;
+        }
+
+        body.dark-mode .metric-subtext {
+            color: #94a3b8;
+        }
+
+        body.dark-mode .search-section {
+            background: #2d2d2d;
+            border-color: #3f3f3f;
+        }
+
+        body.dark-mode .search-section h2 {
+            color: #e0e0e0;
+        }
+
+        body.dark-mode .filter-group label {
+            color: #cbd5e1;
+        }
+
+        body.dark-mode .filter-group input,
+        body.dark-mode .filter-group select {
+            background: #1a1a1a;
+            border-color: #3f3f3f;
+            color: #e0e0e0;
+        }
+
+        body.dark-mode .filter-group input:focus,
+        body.dark-mode .filter-group select:focus {
+            border-color: #0284c7;
+        }
+
+        body.dark-mode .results-section {
+            background: #2d2d2d;
+            border-color: #3f3f3f;
+        }
+
+        body.dark-mode .results-header h2 {
+            color: #e0e0e0;
+        }
+
+        body.dark-mode .results-table {
+            background: #2d2d2d;
+        }
+
+        body.dark-mode .results-table thead {
+            background: #1a1a1a;
+            border-bottom-color: #3f3f3f;
+        }
+
+        body.dark-mode .results-table th {
+            color: #94a3b8;
+        }
+
+        body.dark-mode .results-table td {
+            border-bottom-color: #3f3f3f;
+            color: #e0e0e0;
+        }
+
+        body.dark-mode .results-table tbody tr:hover {
+            background: #383838;
+        }
+
+        body.dark-mode .notes-input {
+            background: #1a1a1a;
+            border-color: #3f3f3f;
+            color: #e0e0e0;
+        }
+
+        body.dark-mode .notes-input:focus {
+            border-color: #0284c7;
+        }
+
+        body.dark-mode nav {
+            background: #0f172a;
+            border-bottom: 1px solid #3f3f3f;
+        }
+
+        .dark-mode-toggle {
+            position: fixed;
+            top: 70px;
+            right: 20px;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .toggle-switch {
+            width: 50px;
+            height: 26px;
+            background-color: #cbd5e1;
+            border-radius: 13px;
+            cursor: pointer;
+            position: relative;
+            transition: background-color 0.3s;
+        }
+
+        .toggle-switch.on {
+            background-color: #06b6d4;
+        }
+
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            width: 22px;
+            height: 22px;
+            background-color: white;
+            border-radius: 50%;
+            top: 2px;
+            left: 2px;
+            transition: left 0.3s;
+        }
+
+        .toggle-switch.on::after {
+            left: 26px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #64748b;
+        }
+
+        .loading::after {
+            content: '';
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            margin-left: 10px;
+            border: 3px solid #e2e8f0;
+            border-top-color: #0284c7;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .error-message {
+            background: #fee2e2;
+            color: #991b1b;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            border-left: 4px solid #dc2626;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #94a3b8;
+        }
+
+        .empty-state svg {
+            width: 64px;
+            height: 64px;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .pagination button {
+            padding: 8px 12px;
+            border: 1px solid #cbd5e1;
+            background: white;
+            color: #334155;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .pagination button:hover:not(:disabled) {
+            background: #0284c7;
+            color: white;
+            border-color: #0284c7;
+        }
+
+        .pagination button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .pagination button.active {
+            background: #0284c7;
+            color: white;
+            border-color: #0284c7;
+        }
+
+        .color-badge {
+            background-color: #dbeafe;
+            color: #1e40af;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+            display: inline-block;
+            cursor: help;
+        }
+
+        .type-badge {
+            background-color: #d1fae5;
+            color: #065f46;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+            display: inline-block;
+            cursor: help;
+        }
+    </style>
+</head>
+<body>
+    <div class="lpr-container">
+        <!-- Header -->
+        <div class="lpr-header">
+            <h1>🚗 License Plate Recognition Dashboard</h1>
+            <p>Search and analyze captured license plate data</p>
+        </div>
+
+        <!-- Metrics Section -->
+        <div class="metrics-grid" id="metricsContainer">
+            <div class="metric-card">
+                <h3>Loading metrics...</h3>
+            </div>
+        </div>
+
+        <!-- Search Section -->
+        <div class="search-section">
+            <h2>🔍 Search License Plates</h2>
+            
+            <div class="filter-grid">
+                <div class="filter-group">
+                    <label for="plateFilter">License Plate</label>
+                    <input type="text" id="plateFilter" placeholder="e.g., DAL6349">
+                </div>
+
+                <div class="filter-group">
+                    <label for="nameFilter">User Name</label>
+                    <input type="text" id="nameFilter" placeholder="e.g., John Smith">
+                </div>
+
+                <div class="filter-group">
+                    <label for="emailFilter">Email Address</label>
+                    <input type="text" id="emailFilter" placeholder="e.g., user@example.com">
+                </div>
+
+                <div class="filter-group">
+                    <label for="userStatus">Status</label>
+                    <select id="userStatus">
+                        <option value="">All</option>
+                        <option value="known">Identified Only</option>
+                        <option value="unknown">Unidentified Only</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label for="cameraFilter">Camera</label>
+                    <select id="cameraFilter">
+                        <option value="">All Cameras</option>
+                        <option value="LPR Camera Left">LPR Camera Left</option>
+                        <option value="LPR Camera Right">LPR Camera Right</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label for="startDate">Start Date & Time</label>
+                    <input type="datetime-local" id="startDate">
+                </div>
+
+                <div class="filter-group">
+                    <label for="endDate">End Date & Time</label>
+                    <input type="datetime-local" id="endDate">
+                </div>
+
+                <div class="filter-group">
+                    <label for="confidenceFilter">Min Confidence (%)</label>
+                    <input type="number" id="confidenceFilter" min="0" max="100" placeholder="e.g., 90">
+                </div>
+
+                <div class="filter-group">
+                    <label for="colorFilter">Vehicle Color</label>
+                    <select id="colorFilter">
+                        <option value="">All Colors</option>
+                        <option value="white">White</option>
+                        <option value="black">Black</option>
+                        <option value="silver">Silver</option>
+                        <option value="gray">Gray</option>
+                        <option value="red">Red</option>
+                        <option value="blue">Blue</option>
+                        <option value="green">Green</option>
+                        <option value="gold">Gold</option>
+                        <option value="brown">Brown</option>
+                        <option value="yellow">Yellow</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label for="vehicleTypeFilter">Vehicle Type</label>
+                    <select id="vehicleTypeFilter">
+                        <option value="">All Types</option>
+                        <option value="car">Car</option>
+                        <option value="suv">SUV</option>
+                        <option value="truck">Truck</option>
+                        <option value="van">Van</option>
+                        <option value="sedan">Sedan</option>
+                        <option value="coupe">Coupe</option>
+                        <option value="hatchback">Hatchback</option>
+                        <option value="wagon">Wagon</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label for="ownerFilter">Owner/Group Name</label>
+                    <input type="text" id="ownerFilter" placeholder="e.g., Smith, Johnson">
+                </div>
+
+            </div>
+
+            <div class="button-group">
+                <button class="btn btn-secondary" onclick="resetFilters()">Reset</button>
+                <button class="btn btn-primary" onclick="performSearch()">Search</button>
+            </div>
+        </div>
+
+        <!-- Results Section -->
+        <div class="results-section" id="resultsContainer" style="display: none;">
+            <div class="results-header">
+                <h2>Search Results</h2>
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <span class="results-count" id="resultCount">0 results</span>
+                    <button class="btn btn-sm btn-secondary" onclick="performSearch()" title="Refresh results">
+                        🔄 Refresh
+                    </button>
+                </div>
+            </div>
+            
+            <div id="errorContainer"></div>
+            <div id="tableContainer"></div>
+            <div id="paginationContainer"></div>
+        </div>
+
+        <div id="noResults" style="display: none;">
+            <div class="empty-state">
+                <h3>No Results Found</h3>
+                <p>Try adjusting your search filters</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentPage = 1;
+        let lastQuery = {};
+
+        // Initialize header on page load
+        window.addEventListener('load', () => {
+            loadMetrics();
+            loadDarkMode();
+        });
+
+        // Load dark mode preference from server
+        async function loadDarkMode() {
+            try {
+                const response = await fetch('/api/dark-mode', { credentials: 'include' });
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.darkModeEnabled) {
+                        document.body.classList.add('dark-mode');
+                        document.getElementById('darkModeToggle').classList.add('on');
+                    }
+                }
+            } catch (error) {
+                console.error('Failed to load dark mode preference:', error);
+            }
+        }
+
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark-mode');
+            const toggle = document.getElementById('darkModeToggle');
+            toggle.classList.toggle('on');
+            const isDarkMode = document.body.classList.contains('dark-mode');
+            
+            // Save preference to server
+            fetch('/api/dark-mode', {
+                method: 'POST',
+                credentials: 'include',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ enabled: isDarkMode })
+            }).catch(error => console.error('Failed to save dark mode preference:', error));
+        }
+
+        function filterByToday() {
+            // Set date filter to today in LOCAL time (not UTC)
+            // Get today's date in the user's local timezone
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = String(today.getMonth() + 1).padStart(2, '0');
+            const day = String(today.getDate()).padStart(2, '0');
+            const localDate = `${year}-${month}-${day}`;
+            
+            document.getElementById('startDate').value = localDate;
+            document.getElementById('endDate').value = localDate;
+            performSearch();
+        }
+
+        function filterByIdentified() {
+            // Set status filter to identified (known users)
+            document.getElementById('userStatus').value = 'known';
+            performSearch();
+        }
+
+        function filterByUnidentified() {
+            // Set status filter to unidentified (unknown users)
+            document.getElementById('userStatus').value = 'unknown';
+            performSearch();
+        }
+
+        async function loadMetrics() {
+            try {
+                const response = await fetch('/admin/dashboard', { credentials: 'include' });
+                if (!response.ok) {
+                    console.error('Failed to load metrics');
+                    return;
+                }
+
+                const data = await response.json();
+                displayMetrics(data.metrics);
+                
+                // Load all results without date filter on initial page load
+                performSearch();
+            } catch (error) {
+                console.error('Error loading metrics:', error);
+            }
+        }
+
+        function displayMetrics(metrics) {
+            const container = document.getElementById('metricsContainer');
+            const lpr = metrics.lpr || {};
+
+            // Format reset text helper (seconds until reset)
+            function formatResetText(seconds) {
+                if (seconds === null || seconds === undefined) return '';
+                if (seconds <= 0) return '· resets now';
+                const hrs = Math.floor(seconds / 3600);
+                const mins = Math.floor((seconds % 3600) / 60);
+                return `· resets in ${hrs ? hrs + 'h ' : ''}${mins}m`;
+            }
+
+            let cameraStatus = '';
+            if (lpr.cameras && lpr.cameras.length > 0) {
+                cameraStatus = lpr.cameras.map(cam => {
+                    let timeStr = 'No detections';
+                    if (cam.last_detection) {
+                        const lastDate = new Date(cam.last_detection);
+                        const now = new Date();
+                        const diffMs = now - lastDate;
+                        const diffMins = Math.floor(diffMs / 60000);
+                        const diffHours = Math.floor(diffMs / 3600000);
+                        
+                        if (diffMins < 60) {
+                            timeStr = `${diffMins}m ago`;
+                        } else if (diffHours < 24) {
+                            timeStr = `${diffHours}h ago`;
+                        } else {
+                            timeStr = lastDate.toLocaleDateString();
+                        }
+                    }
+                    return `<div style="font-size: 11px; margin: 5px 0;"><strong>${cam._id}:</strong> ${cam.count} detections (${timeStr})</div>`;
+                }).join('');
+            }
+
+            let lastDetectionTime = 'N/A';
+            if (lpr.cameras && lpr.cameras.length > 0) {
+                const lastDetections = lpr.cameras
+                    .map(cam => cam.last_detection ? new Date(cam.last_detection) : null)
+                    .filter(d => d !== null)
+                    .sort((a, b) => b - a);
+                
+                if (lastDetections.length > 0) {
+                    const lastDate = lastDetections[0];
+                    const now = new Date();
+                    const diffMs = now - lastDate;
+                    const diffMins = Math.floor(diffMs / 60000);
+                    const diffHours = Math.floor(diffMs / 3600000);
+                    
+                    if (diffMins < 60) {
+                        lastDetectionTime = `${diffMins} min ago`;
+                    } else if (diffHours < 24) {
+                        lastDetectionTime = `${diffHours} hrs ago`;
+                    } else {
+                        lastDetectionTime = lastDate.toLocaleString();
+                    }
+                }
+            }
+
+            let oldestDetectionInfo = 'N/A';
+            if (lpr.oldest_detection && lpr.oldest_detection.timestamp) {
+                const oldestDate = new Date(lpr.oldest_detection.timestamp);
+                oldestDetectionInfo = oldestDate.toLocaleDateString() + ' ' + oldestDate.toLocaleTimeString();
+            }
+
+            const html = `
+                <div class="metric-card" onclick="filterByToday()" style="cursor: pointer;">
+                    <h3>🚗 Plates Today</h3>
+                    <div class="metric-value">${lpr.detections_today || 0}</div>
+                    <div class="metric-subtext">since midnight (server time) <span id="platesResetInfo" title="start: ${lpr.start_of_day || ''} · next: ${lpr.next_reset || ''}">${lpr.seconds_until_reset !== undefined ? formatResetText(lpr.seconds_until_reset) : ''}</span></div>
+                </div>
+                <div class="metric-card" onclick="filterByToday()" style="cursor: pointer;">
+                    <h3>📌 Unique Plates Today</h3>
+                    <div class="metric-value">${lpr.unique_plates_today || 0}</div>
+                    <div class="metric-subtext">unique plates today <span id="uniqueResetInfo" title="start: ${lpr.start_of_day || ''} · next: ${lpr.next_reset || ''}">${lpr.seconds_until_reset !== undefined ? formatResetText(lpr.seconds_until_reset) : ''}</span></div>
+                </div>
+                <div class="metric-card">
+                    <h3>📊 Unique Plates</h3>
+                    <div class="metric-value">${lpr.unique_plates || 0}</div>
+                    <div class="metric-subtext">all-time</div>
+                </div>
+                <div class="metric-card">
+                    <h3>✓ Avg Confidence</h3>
+                    <div class="metric-value">${lpr.avg_confidence_all || 0}%</div>
+                    <div class="metric-subtext">All-time OCR score${lpr.avg_confidence_today !== null ? ` · Today: ${lpr.avg_confidence_today}%` : ''}</div>
+                </div>
+                <div class="metric-card">
+                    <h3>⏱️ Last Detection</h3>
+                    <div class="metric-value" style="font-size: 16px;">${lastDetectionTime}</div>
+                </div>
+                <div class="metric-card">
+                    <h3>📅 Oldest Detection</h3>
+                    <div class="metric-value" style="font-size: 14px;">${oldestDetectionInfo}</div>
+                </div>
+                <div class="metric-card" onclick="filterByIdentified()" style="cursor: pointer;">
+                    <h3>� Identified Detections</h3>
+                    <div class="metric-value">${lpr.known_users || 0}</div>
+                    <div class="metric-subtext">matched to registered users</div>
+                </div>
+                <div class="metric-card" onclick="filterByUnidentified()" style="cursor: pointer;">
+                    <h3>📝 Unidentified Detections</h3>
+                    <div class="metric-value">${lpr.unknown_users || 0}</div>
+                    <div class="metric-subtext">not yet assigned</div>
+                </div>
+            `;
+
+            container.innerHTML = html;
+
+            // compute seconds until reset using server-supplied start_of_day (preferred)
+            function getSecondsUntilReset() {
+                if (lpr.seconds_until_reset !== undefined && lpr.start_of_day === undefined) {
+                    return lpr.seconds_until_reset;
+                }
+                if (lpr.start_of_day) {
+                    const start = new Date(lpr.start_of_day);
+                    const next = new Date(start.getTime() + 24 * 60 * 60 * 1000);
+                    return Math.max(0, Math.floor((next.getTime() - Date.now()) / 1000));
+                }
+                return null;
+            }
+
+            function updateResetUI() {
+                const s = getSecondsUntilReset();
+                const text = s !== null ? formatResetText(s) : '';
+                const p = document.getElementById('platesResetInfo');
+                const u = document.getElementById('uniqueResetInfo');
+                if (p) p.textContent = text;
+                if (u) u.textContent = text;
+            }
+
+            updateResetUI();
+            if (window._lprResetInterval) clearInterval(window._lprResetInterval);
+            window._lprResetInterval = setInterval(updateResetUI, 30000);
+        }
+
+
+
+        async function performSearch() {
+            currentPage = 1;
+            const params = buildQueryParams();
+            lastQuery = params;
+            
+            await fetchResults(params);
+        }
+
+        function buildQueryParams() {
+            const params = {};
+
+            const plate = document.getElementById('plateFilter').value.trim();
+            if (plate) params.plate = plate;
+
+            const name = document.getElementById('nameFilter').value.trim();
+            if (name) params.name = name;
+
+            const email = document.getElementById('emailFilter').value.trim();
+            if (email) params.email = email;
+
+            const status = document.getElementById('userStatus').value;
+            if (status) params.status = status;
+
+            const camera = document.getElementById('cameraFilter').value;
+            if (camera) params.camera = camera;
+
+            const startDate = document.getElementById('startDate').value;
+            if (startDate) params.start_date = startDate;
+
+            const endDate = document.getElementById('endDate').value;
+            if (endDate) params.end_date = endDate;
+
+            const confidence = document.getElementById('confidenceFilter').value;
+            if (confidence) params.min_confidence = confidence;
+
+            const color = document.getElementById('colorFilter').value;
+            if (color) params.color = color;
+
+            const vehicleType = document.getElementById('vehicleTypeFilter').value;
+            if (vehicleType) params.vehicle_type = vehicleType;
+
+            const owner = document.getElementById('ownerFilter').value.trim();
+            if (owner) params.owner = owner;
+
+            params.page = currentPage;
+            params.limit = 50;
+
+            return params;
+        }
+
+        async function fetchResults(params) {
+            const resultsSection = document.getElementById('resultsContainer');
+            const noResults = document.getElementById('noResults');
+            const tableContainer = document.getElementById('tableContainer');
+            const errorContainer = document.getElementById('errorContainer');
+
+            tableContainer.innerHTML = '<div class="loading">Searching...</div>';
+            errorContainer.innerHTML = '';
+            resultsSection.style.display = 'block';
+            noResults.style.display = 'none';
+
+            try {
+                const queryString = new URLSearchParams(params).toString();
+                console.log('Fetching:', `/api/lpr/search?${queryString}`);
+                const response = await fetch(`/api/lpr/search?${queryString}`, {
+                    credentials: 'include'
+                });
+
+                console.log('Response status:', response.status);
+                const data = await response.json();
+                console.log('Response data:', data);
+
+                if (!response.ok) {
+                    throw new Error(data.error || `Search failed with status ${response.status}`);
+                }
+
+                displayResults(data);
+            } catch (error) {
+                console.error('Fetch error:', error);
+                errorContainer.innerHTML = `<div class="error-message">Error: ${error.message}</div>`;
+                tableContainer.innerHTML = '';
+            }
+        }
+
+        function displayResults(data) {
+            const { results, pagination } = data;
+            const tableContainer = document.getElementById('tableContainer');
+            const resultCount = document.getElementById('resultCount');
+            const noResults = document.getElementById('noResults');
+
+            resultCount.textContent = `${pagination.total} results found`;
+
+            if (results.length === 0) {
+                tableContainer.innerHTML = '';
+                noResults.style.display = 'block';
+                return;
+            }
+
+            noResults.style.display = 'none';
+
+            const html = `
+                <table class="results-table">
+                    <thead>
+                        <tr>
+                            <th>License Plate</th>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Camera</th>
+                            <th>Time</th>
+                            <th>Confidence</th>
+                            <th>Color</th>
+                            <th>Vehicle Type</th>
+                            <th>Owner</th>
+                            <th>Notes</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${results.map(result => {
+                            const isUnknown = result.user_email === 'unknown' || !result.user_email;
+                            const userName = result.user_name || (isUnknown ? '📋 Not Identified' : 'Registered User');
+                            const userEmail = result.user_email || 'Not identified';
+                            const userClass = isUnknown ? 'unknown' : '';
+                            const time = result.timestamp ? new Date(result.timestamp).toLocaleString() : 'N/A';
+                            const confidence = result.confidence || 0;
+                            const confClass = confidence > 0 ? (confidence >= 93 ? 'confidence-high' : (confidence >= 88 ? 'confidence-medium' : 'confidence-low')) : 'confidence-medium';
+                            const confDisplay = confidence > 0 ? `<span class="confidence-badge ${confClass}">${confidence}%</span>` : '<span class="confidence-badge confidence-medium">N/A</span>';
+                            
+                            // Extract vehicle characteristics
+                            const vehicleData = result.vehicle_data || {};
+                            const color = vehicleData.attributes?.color?.value || 'N/A';
+                            const colorConf = vehicleData.attributes?.color?.confidence || 0;
+                            const vehicleType = vehicleData.attributes?.vehicleType?.value || 'N/A';
+                            const vehicleTypeConf = vehicleData.attributes?.vehicleType?.confidence || 0;
+                            const ownerName = vehicleData.group?.name || 'N/A';
+                            const ownerMatch = vehicleData.group?.confidence ? `(${vehicleData.group.confidence}%)` : '';
+                            const notes = result.notes || '';
+                            
+                            return `
+                                <tr>
+                                    <td class="plate-cell">${result.license_plate}</td>
+                                    <td class="user-cell ${userClass}">${userName}</td>
+                                    <td class="user-cell ${userClass}">${userEmail}</td>
+                                    <td>${result.camera_name || 'N/A'}</td>
+                                    <td>${time}</td>
+                                    <td>${confDisplay}</td>
+                                    <td><span class="color-badge" title="Color confidence: ${colorConf}%">${color}</span></td>
+                                    <td><span class="type-badge" title="Type confidence: ${vehicleTypeConf}%">${vehicleType}</span></td>
+                                    <td>${ownerName} ${ownerMatch}</td>
+                                    <td><input type="text" class="notes-input" value="${notes}" placeholder="Add note..." data-plate="${result.license_plate}"></td>
+                                    <td><button class="btn-save-note" onclick="saveNote(this)">Save</button></td>
+                                </tr>
+                            `;
+                        }).join('')}
+                    </tbody>
+                </table>
+            `;
+
+            tableContainer.innerHTML = html;
+
+            // Display pagination
+            displayPagination(pagination);
+        }
+
+        function displayPagination(pagination) {
+            const container = document.getElementById('paginationContainer');
+            if (pagination.pages <= 1) {
+                container.innerHTML = '';
+                return;
+            }
+
+            let html = '<div class="pagination">';
+            
+            if (currentPage > 1) {
+                html += `<button onclick="goToPage(${currentPage - 1})">← Previous</button>`;
+            }
+
+            for (let i = Math.max(1, currentPage - 2); i <= Math.min(pagination.pages, currentPage + 2); i++) {
+                const activeClass = i === currentPage ? 'active' : '';
+                html += `<button class="${activeClass}" onclick="goToPage(${i})">${i}</button>`;
+            }
+
+            if (currentPage < pagination.pages) {
+                html += `<button onclick="goToPage(${currentPage + 1})">Next →</button>`;
+            }
+
+            html += '</div>';
+            container.innerHTML = html;
+        }
+
+        function goToPage(page) {
+            currentPage = page;
+            // Update the page in lastQuery before fetching
+            const params = { ...lastQuery, page: currentPage };
+            fetchResults(params);
+        }
+
+        async function saveNote(button) {
+            const input = button.parentElement.previousElementSibling.querySelector('.notes-input');
+            const resultId = input.getAttribute('data-id');
+            const plate = input.getAttribute('data-plate');
+            const notes = input.value.trim();
+
+            try {
+                const response = await fetch('/api/lpr/note', {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ plate, notes })
+                });
+
+                if (response.ok) {
+                    button.textContent = '✓ Saved';
+                    setTimeout(() => { button.textContent = 'Save'; }, 2000);
+                } else {
+                    alert('Failed to save note');
+                }
+            } catch (error) {
+                console.error('Error saving note:', error);
+                alert('Error saving note: ' + error.message);
+            }
+        }
+
+        function resetFilters() {
+            document.getElementById('plateFilter').value = '';
+            document.getElementById('nameFilter').value = '';
+            document.getElementById('emailFilter').value = '';
+            document.getElementById('userStatus').value = '';
+            document.getElementById('cameraFilter').value = '';
+            document.getElementById('startDate').value = '';
+            document.getElementById('endDate').value = '';
+            document.getElementById('confidenceFilter').value = '';
+            document.getElementById('resultsContainer').style.display = 'none';
+            document.getElementById('noResults').style.display = 'none';
+        }
+
+        async function saveNote(button) {
+            const row = button.parentElement.parentElement;
+            const input = row.querySelector('.notes-input');
+            const plate = input.getAttribute('data-plate');
+            const notes = input.value.trim();
+
+            try {
+                const response = await fetch('/api/lpr/note', {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ plate, notes })
+                });
+
+                if (response.ok) {
+                    button.textContent = '✓ Saved';
+                    setTimeout(() => { button.textContent = 'Save'; }, 2000);
+                } else {
+                    alert('Failed to save note');
+                }
+            } catch (error) {
+                console.error('Error saving note:', error);
+                alert('Error saving note: ' + error.message);
+            }
+        }
+    </script>
+    <script src="header.js"></script>
+</body>
+</html>

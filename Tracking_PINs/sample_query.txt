@@ -1,0 +1,7 @@
+# Paste your API query / endpoint here.
+# Example (replace with your actual endpoint and auth):
+# GET https://protect.example.com/api/v1/events?type=PIN&start=2026-01-01T00:00:00Z&end=2026-01-01T23:59:59Z
+# Headers:
+# Authorization: Bearer <API_TOKEN>
+
+# Or paste the full curl command you use to get the PIN/QR events.

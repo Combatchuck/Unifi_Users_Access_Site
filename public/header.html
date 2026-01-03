@@ -1,0 +1,93 @@
+<!-- Standard Navigation Header -->
+<nav class="navbar-standard">
+    <div class="navbar-container">
+        <div class="navbar-left">
+            <a href="/" class="nav-brand">🏠 Home</a>
+            <a href="/admin.html" id="adminLink" class="nav-link" style="display: none;">📊 Admin Dashboard</a>
+            <!-- LPR Query link removed -->
+        </div>
+        <div class="navbar-right">
+            <div class="dark-mode-toggle-header">
+                <span>🌙 Dark Mode</span>
+                <div class="toggle-switch" id="darkModeToggle"></div>
+            </div>
+            <button id="logoutBtn" class="nav-logout">Logout</button>
+        </div>
+    </nav>
+</nav>
+
+<script>
+// Initialize header on all pages
+document.addEventListener('DOMContentLoaded', function() {
+    initializeHeader();
+    
+    // Check if user is authenticated
+    fetch('/api/check-session')
+        .then(r => r.json())
+        .then(data => {
+            if (data.authenticated) {
+                // Show logout button
+                document.getElementById('logoutBtn').style.display = 'block';
+                
+                // Show admin links if user is admin
+                if (data.isAdmin) {
+                    document.getElementById('adminLink').style.display = 'inline-block';
+
+                }
+            } else {
+                // Hide logout button if not authenticated
+                document.getElementById('logoutBtn').style.display = 'none';
+                document.getElementById('adminLink').style.display = 'none';
+            }
+        })
+        .catch(err => console.log('Session check failed:', err));
+});
+
+function initializeHeader() {
+    // Dark mode toggle functionality
+    const toggle = document.getElementById('darkModeToggle');
+    if (toggle) {
+        toggle.addEventListener('click', toggleDarkMode);
+        
+        // Load dark mode preference
+        fetch('/api/dark-mode')
+            .then(r => r.json())
+            .then(data => {
+                if (data.darkMode) {
+                    document.body.classList.add('dark-mode');
+                    toggle.classList.add('on');
+                }
+            });
+    }
+    
+    // Logout button
+    const logoutBtn = document.getElementById('logoutBtn');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', function() {
+            fetch('/logout', { method: 'POST' })
+                .then(r => r.json())
+                .then(data => {
+                    window.location.href = '/';
+                })
+                .catch(err => {
+                    console.error('Logout failed:', err);
+                    window.location.href = '/';
+                });
+        });
+    }
+}
+
+function toggleDarkMode() {
+    document.body.classList.toggle('dark-mode');
+    const toggle = document.getElementById('darkModeToggle');
+    toggle.classList.toggle('on');
+    
+    // Save preference to server
+    const isDark = document.body.classList.contains('dark-mode');
+    fetch('/api/dark-mode', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ darkMode: isDark })
+    });
+}
+</script>

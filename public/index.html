@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Access Portal</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container mt-5">
+    <div id="loading-overlay" style="display: none;">
+        <div class="spinner"></div>
+    </div>
+    <div id="feedback-messages" style="display: none;"></div>
+    <h1 id="site-title" class="text-center">User Access Portal</h1>
+    <div id="auth-container" class="card p-4">
+        <p>Enter your email to get a verification code:</p>
+        <p class="text-muted"><small>Note: You must already have an account with the system in order to login.</small></p>
+        <div class="input-group mb-3">
+            <input type="email" id="email" class="form-control" placeholder="Enter your email">
+            <button id="send-code" class="btn btn-primary">Send Code</button>
+        </div>
+    </div>
+    <div id="verify-container" class="card p-4" style="display: none;">
+        <p>Enter the code we sent to your email:</p>
+        <div class="input-group mb-3">
+            <input type="text" id="code" class="form-control" placeholder="Enter your code">
+            <button id="verify-code" class="btn btn-primary">Verify Code</button>
+        </div>
+    </div>
+    <div id="user-dashboard" class="card p-4" style="display: none;">
+        <div id="user-info-display" style="display: none;">
+            <div class="d-flex align-items-center gap-3 mb-4">
+                <div id="user-avatar-container" style="display: none;">
+                    <img id="user-avatar" src="" alt="User Avatar" class="rounded-circle" style="width: 80px; height: 80px; object-fit: cover; border: 2px solid #dee2e6;">
+                </div>
+                <div>
+                    <h2 class="mb-1">Welcome, <span id="user-name"></span></h2>
+                    <p class="text-muted mb-0" id="user-address" style="display: none;"></p>
+                </div>
+            </div>
+        </div>
+        <div id="managed-users-container" class="mb-3">
+            <p>User Email: <span id="managed-user-email"></span></p>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <ul class="nav nav-tabs mb-3" id="dashboardTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="home-tab" data-bs-toggle="tab" data-bs-target="#home-content" type="button" role="tab" aria-controls="home-content" aria-selected="true">Home</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="visitors-tab" data-bs-toggle="tab" data-bs-target="#visitors-content" type="button" role="tab" aria-controls="visitors-content" aria-selected="false">Visitors</button>
+            </li>
+        </ul>
+
+        <!-- Tab Content -->
+        <div class="tab-content" id="dashboardTabContent">
+            <!-- Home Tab -->
+            <div class="tab-pane fade show active" id="home-content" role="tabpanel" aria-labelledby="home-tab">
+                <div id="invite-buttons" class="mb-3 d-flex gap-3 justify-content-between">
+                    <button id="send-invite-button" class="btn btn-primary flex-fill">Send New Invite<br>(<span id="invite-site1-name">SMB Gate</span>)</button>
+                    <button id="send-invite-site2-button" class="btn btn-primary flex-fill">Send New Invite<br>(<span id="invite-site2-name">Clubhouse/Pool</span>)</button>
+                </div>
+
+<!-- Script updates for applying inviteSiteCount are in the page-load handler -->
+                <div id="pin-change-container" class="mb-3">
+                    <p>Update your PIN for the Gate and Clubhouse/Pool</p>
+                    <ul>
+                        <li>PIN must be 5-8 digits long.</li>
+                        <li>Cannot contain sequential numbers (e.g., 12345).</li>
+                        <li>Cannot have repetitive numbers (e.g., 11111).</li>
+                    </ul>
+                    <div class="input-group">
+                        <input type="password" id="new-pin" class="form-control" placeholder="Enter your new PIN">
+                        <button id="change-pin" class="btn btn-success">Change PIN</button>
+                    </div>
+                    <div id="pin-error" class="text-danger mt-2" style="display: none;"></div>
+                </div>
+                <div id="license-plates-container" class="mb-3">
+                    <h3>License Plates</h3>
+                    <div class="alert alert-info" role="alert">
+                        <small><strong>Important Note:</strong> Once you click Add Plate or Remove, it can take a couple of minutes for the change to reflect here, but the system is updated right away.</small>
+                    </div>
+
+                    <h4>Who Should Be Listed?</h4>
+                    <ul>
+                        <li>Plates added here are for family and close friends.</li>
+                        <li>Visitors' passes can still be added through the UniFi Identity Application.</li>
+                    </ul>
+
+                    <h4>Important Information Regarding User Accounts</h4>
+                    <p>When users submitted for new accounts, they might have listed the same plates on multiple users.</p>
+                    <p>The system can only have a plate tied to one user.</p>
+
+                    <h4>Temporary Plates</h4>
+                    <div class="alert alert-warning" role="alert">
+                        <small><strong>⚠️ Note on Dealer/Temporary Plates:</strong> You are free to try adding temporary plates issued by dealers (new car plates that are non-reflective). However, keep in mind that these dealer-issued plates have smaller letters than standard reflective plates, making them more difficult for the camera to read. Success is not guaranteed. If a temporary plate doesn't work, you can use other authentication methods such as PINs or QR Codes, or use the UniFi Identity mobile app for gate access.</small>
+                    </div>
+
+                    <div id="lpr-tiles-container" style="margin-top: 16px;">
+                        <!-- LPR tiles will be inserted here -->
+                        <div id="lpr-tiles" class="row g-3"></div>
+                    </div>
+
+                    <div style="padding: 10px 0; font-size: 13px; color: #666;">
+                        <small><strong>📊 Note:</strong> Plate detection metrics began on December 24th, 2025.</small>
+                    </div>
+
+                    <script>
+                        async function loadLprTiles() {
+                            try {
+                                const cacheBust = Date.now();
+                                const statsResp = await fetch('/api/license-plates/stats?_=' + cacheBust, { cache: 'no-store' });
+                                const stats = statsResp.ok ? await statsResp.json() : {};
+
+                                // Last detection (most recent)
+                                const lastResp = await fetch('/api/license-plates?hours=24&limit=1&_=' + cacheBust, { cache: 'no-store' });
+                                const lastData = lastResp.ok ? await lastResp.json() : { plates: [] };
+                                const lastPlate = (lastData.plates && lastData.plates.length>0) ? lastData.plates[0] : null;
+
+                                // Oldest detection - request a wide window and compute min timestamp if API doesn't provide
+                                const allResp = await fetch('/api/license-plates?hours=10000&limit=1000&_=' + cacheBust, { cache: 'no-store' });
+                                const allData = allResp.ok ? await allResp.json() : { plates: [] };
+                                let oldest = null;
+                                if (allData.plates && allData.plates.length>0) {
+                                    oldest = allData.plates.reduce((min, p) => {
+                                        const t = new Date(p.timestamp).getTime();
+                                        return (min === null || t < min) ? t : min;
+                                    }, null);
+                                }
+
+                                const uniqueToday = stats.unique_plates_today || stats.unique_plates || 0;
+                                const uniqueAll = stats.unique_plates || stats.unique_plates_all_time || 0;
+
+                                const lastDetectionText = lastPlate ? (new Date(lastPlate.timestamp)).toLocaleString() : 'N/A';
+                                const oldestText = oldest ? (new Date(oldest)).toLocaleString() : 'N/A';
+
+                                const container = document.getElementById('lpr-tiles');
+                                container.innerHTML = `
+                                    <div class="col-12 col-md-3">
+                                        <div class="card text-center p-3">
+                                            <h6 class="mb-1">📅 Oldest Detection</h6>
+                                            <div style="font-size: 14px;">${oldestText}</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-12 col-md-3">
+                                        <div class="card text-center p-3">
+                                            <h6 class="mb-1">⏱️ Last Detection</h6>
+                                            <div style="font-size: 14px;">${lastDetectionText}</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-12 col-md-3">
+                                        <div class="card text-center p-3">
+                                            <h6 class="mb-1">📌 Unique Plates Today</h6>
+                                            <div style="font-size: 20px; font-weight:700; color:#06b6d4;">${uniqueToday}</div>
+                                            <div class="text-muted" style="font-size:11px;">unique plates today</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-12 col-md-3">
+                                        <div class="card text-center p-3">
+                                            <h6 class="mb-1">🌐 Unique Plates All Time</h6>
+                                            <div style="font-size: 20px; font-weight:700; color:#06b6d4;">${uniqueAll}</div>
+                                            <div class="text-muted" style="font-size:11px;">unique plates all time</div>
+                                        </div>
+                                    </div>
+                                `;
+                            } catch (e) {
+                                console.error('Failed to load LPR tiles', e);
+                            }
+                        }
+
+                        // Load tiles on page load and refresh periodically
+                        window.addEventListener('load', async () => {
+                            // Apply SITE_NAME from server if available
+                            try {
+                                const resp = await fetch('/api/site-info');
+                                if (resp.ok) {
+                                    const payload = await resp.json();
+                                    const siteName = payload.siteName || 'User Access Portal';
+                                    document.title = siteName;
+                                    const siteEl = document.getElementById('site-title');
+                                    if (siteEl) siteEl.textContent = siteName;
+
+                                    // Apply invite site names if provided
+                                    try {
+                                        const s1 = payload.inviteSite1Name || 'SMB Gate';
+                                        const s2 = payload.inviteSite2Name || 'Clubhouse/Pool';
+                                        const el1 = document.getElementById('invite-site1-name');
+                                        const el2 = document.getElementById('invite-site2-name');
+                                        if (el1) el1.textContent = s1;
+                                        if (el2) el2.textContent = s2;
+
+                                        // Apply invite site count: show 1 or 2 buttons and center when single
+                                        const count = parseInt(payload.inviteSiteCount || 2, 10);
+                                        const btnContainer = document.getElementById('invite-buttons');
+                                        const btn1 = document.getElementById('send-invite-button');
+                                        const btn2 = document.getElementById('send-invite-site2-button');
+                                        if (count === 1) {
+                                            if (btn2) btn2.style.display = 'none';
+                                            if (btnContainer) {
+                                                btnContainer.classList.remove('justify-content-between');
+                                                btnContainer.classList.add('justify-content-center');
+                                            }
+                                            if (btn1) {
+                                                btn1.classList.remove('flex-fill');
+                                                btn1.classList.add('w-50');
+                                            }
+                                        } else {
+                                            if (btn2) btn2.style.display = '';
+                                            if (btnContainer) {
+                                                btnContainer.classList.remove('justify-content-center');
+                                                btnContainer.classList.add('justify-content-between');
+                                            }
+                                            if (btn1) {
+                                                btn1.classList.remove('w-50');
+                                                btn1.classList.add('flex-fill');
+                                            }
+                                        }
+
+                                        // Respect SHOW_LPR_DATA: hide tiles and do not load metrics if disabled
+                                        const showLpr = payload.showLprData !== false;
+                                        if (!showLpr) {
+                                            const lprContainer = document.getElementById('lpr-tiles-container');
+                                            if (lprContainer) lprContainer.style.display = 'none';
+                                        } else {
+                                            loadLprTiles();
+                                            setInterval(loadLprTiles, 10000);
+                                        }
+                                    } catch (e) { /* ignore */ }
+                                }
+                            } catch (e) { /* ignore */ } // refresh every 10s
+                        });
+                    </script>
+
+                    <ul id="license-plates-list" class="list-group"></ul>
+                    <div class="input-group mt-3">
+                        <input type="text" id="new-plate" class="form-control" placeholder="Enter new license plate">
+                        <button id="add-plate" class="btn btn-success">Add Plate</button>
+                    </div>
+                    <div id="plate-error" class="text-danger mt-2" style="display: none;"></div>
+                </div>
+            </div>
+
+            <!-- Visitors Tab -->
+            <div class="tab-pane fade" id="visitors-content" role="tabpanel" aria-labelledby="visitors-tab">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <h3 style="margin: 0;">Manage Visitors</h3>
+                    <button onclick="window.refreshVisitorsList()" class="btn btn-sm btn-primary">🔄 Refresh</button>
+                </div>
+                <div class="alert alert-info" role="alert">
+                    <small><strong>Note:</strong> Click on a visitor to edit details. Changes take effect immediately.</small>
+                </div>
+                <div class="alert alert-secondary" role="alert">
+                    <small><strong>Important:</strong> New visitors are created in the UniFi Identity application. This page allows you to edit access details, schedules, and remarks for existing visitors.</small>
+                </div>
+                <div class="alert alert-warning" role="alert">
+                    <small><strong>⚠️ Dealer/Temporary Plates for Visitors:</strong> If adding a dealer-issued temporary plate for a visitor (new car plate that is non-reflective), keep in mind that these plates have smaller letters than standard reflective plates, making them harder for the camera to read. Success is not guaranteed. We recommend using other authentication methods such as PINs or QR Codes as the primary method instead.</small>
+                </div>
+                
+                <div id="visitors-container">
+                    <div id="visitors-list"></div>
+                    <div id="visitors-empty" class="alert alert-warning" role="alert" style="display: none;">
+                        No active visitors at this time.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <button id="logout" class="btn btn-danger mt-3">Logout</button>
+    </div>
+
+    <!-- Edit Visitor Modal -->
+    <div class="modal fade" id="editVisitorModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editVisitorTitle">Edit Visitor</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="editFirstName" class="form-label"><strong>First Name</strong></label>
+                            <input type="text" id="editFirstName" class="form-control">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="editLastName" class="form-label"><strong>Last Name</strong></label>
+                            <input type="text" id="editLastName" class="form-control">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label"><strong>Created On</strong></label>
+                        <p id="editVisitorCreated" class="form-control-plaintext"></p>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="editStartDate" class="form-label">Access Start Date</label>
+                            <input type="date" id="editStartDate" class="form-control">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="editEndDate" class="form-label">Access End Date</label>
+                            <input type="date" id="editEndDate" class="form-control">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editRemarks" class="form-label">Remarks</label>
+                        <textarea id="editRemarks" class="form-control" rows="3" placeholder="Add any notes or remarks"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label"><strong>Weekly Access Schedule</strong></label>
+                        <small class="d-block text-muted mb-2">Set access hours for each day (leave empty for no access)</small>
+                        <div id="scheduleContainer" style="max-height: 200px; overflow-y: auto; border: 1px solid #dee2e6; padding: 10px; border-radius: 4px;">
+                            <!-- Schedule items will be generated here -->
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label"><strong>License Plates</strong></label>
+                        <div id="editVisitorPlates" style="margin: 10px 0;"></div>
+                        <button type="button" class="btn btn-sm btn-info" id="addPlateModalBtn">Add Plate</button>
+                    </div>
+                    <div class="mb-3">
+                        <label for="newPlateInput" class="form-label">Add New License Plate</label>
+                        <input type="text" id="newPlateInput" class="form-control" placeholder="Enter license plate">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-danger" id="deleteVisitorBtn">Delete Visitor</button>
+                    <button type="button" class="btn btn-primary" id="saveVisitorBtn">Save Changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    </div> <!-- close container -->
+    <script src="header.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
+    <script src="script.js"></script>
+</body>
+</html>
