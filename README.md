@@ -23,7 +23,7 @@ These steps produce a session and then the site shows the appropriate dashboards
   <img src="Pictures/Enter%20Email.png" alt="Enter Email" width="360" />
   <img src="Pictures/Enter%20Code.png" alt="Enter Code" width="360" />
 </p>
-*Top: Enter Email — Bottom: Enter Code — users verify via code to sign in.*
+*Top: Enter Email — Bottom: Enter Code — users verify via code to sign in.
 
 ---
 
@@ -90,13 +90,14 @@ Admin features are driven by `admin.js` and display interactive charts and table
 <p align="center">
   <img src="Pictures/LRP%20Query.png" alt="LPR Query" width="900" />
 </p>
-*LPR Query — search plates, filter by camera, confidence, date, and add notes to results.*
-- Features:
-  - Search by plate, user name, email, camera, vehicle color, vehicle type, confidence, and date/time range
-  - Metrics panel and results table with pagination
-  - Per-result notes with save support
-  - Filters and quick actions for "identified" vs "unidentified" plates
-- Configuration: `SHOW_LPR_DATA=YES|NO` in `.env` controls whether LPR functionality and links are exposed in the public UI (default: `YES`). When set to `NO`, the public site will remove LPR-specific elements (LPR tiles on Home, per-plate last-seen and counts, and the "🚗 LPR Query" nav link) and attempts to access `/lpr-dashboard.html` will return 404/not-available. Admin dashboards and LPR-related backend APIs remain accessible to authorized users. See `.env.example` for the default value.
+*LPR Query — search plates, filter by camera, confidence, date, and add notes to results.*<br>
+<br>
+**Features:**<br>
+Search by plate, user name, email, camera, vehicle color, vehicle type, confidence, and date/time range<br>
+Metrics panel and results table with pagination<br>
+Per-result notes with save support<br>
+Filters and quick actions for "identified" vs "unidentified" plates<br>
+**Configuration:** `SHOW_LPR_DATA=YES|NO` in `.env` controls whether LPR functionality and links are exposed in the public UI (default: `YES`). When set to `NO`, the public site will remove LPR-specific elements (LPR tiles on Home, per-plate last-seen and counts, and the "🚗 LPR Query" nav link) and attempts to access `/lpr-dashboard.html` will return 404/not-available. Admin dashboards and LPR-related backend APIs remain accessible to authorized users. See `.env.example` for the default value.
 
 ---
 
@@ -117,10 +118,149 @@ Admin features are driven by `admin.js` and display interactive charts and table
 - `public/header.js` — Nav and LPR link logic (controlled by `SHOW_LPR_DATA`)
 - `Pictures/` — UI screenshots used in this README (Enter Email, Enter Code, User Dash, Visitor Dash, Admin 1–5, LRP Query)
 
+- `Install Instructions/` — Installation notes, Docker compose examples and templates (see `Install Instructions/README.md`, `docker-compose.yml`, `lpr-capture-compose.yml`) 📦
+- `public/avatars/` — Avatar images (see avatar cache/download logic in `index.js`) 🖼️
+- `public/lpr-dashboard.html` + `index.js` — LPR Dashboard UI and APIs: `GET /api/lpr/search` (advanced search + filters), `GET /api/license-plates`, `GET /api/license-plates/search/:plate` (results, pagination, and detection objects) 🚗
+- `index.js` + `public/script.js` — Users & Visitors sync: `fetchAndCacheData()` (every 30 minutes) persisted to `users_cache`, and per-user visitors via `/api/visitors` cached in `visitors_cache` (client refresh behavior in `public/script.js`) ✅
+- `Mongo-Filter/` — Collection validator docs and scripts to apply/modify validators to `web-portal.license_plates` (see `Mongo-Filter/README.md`, `apply_validator.sh`) 🔒
+
+## Scripts 📜
+
+Below are the repository scripts grouped by function — each group is separated for clarity. Use the file link to open the script for full options and flags.
+
+### Invites & Visitor Management
+
+| Script | Path | Quick usage / note |
+|---|---|---|
+| send_invite.sh | `send_invite.sh` | `./send_invite.sh "user@example.com"` (send invite via primary site script)
+| send_invite_site2.sh | `send_invite_site2.sh` | `./send_invite_site2.sh "user@example.com"` (secondary site)
+| get_user_name.sh | `get_user_name.sh` | `./get_user_name.sh user@example.com` (lookup user)
+| get_managed_users.sh | `get_managed_users.sh` | `./get_managed_users.sh` (fetch managed users)
+
+<br/>
+
+### License Plate Management
+
+| Script | Path | Quick usage / note |
+|---|---|---|
+| add_license_plate.sh | `add_license_plate.sh` | `./add_license_plate.sh "user@example.com" "ABC123"` (add a plate)
+| add_license_plate_site2.sh | `add_license_plate_site2.sh` | same for Site2
+| remove_license_plate.sh | `remove_license_plate.sh` | `./remove_license_plate.sh "user@example.com" "ABC123"` (remove plate)
+| remove_license_plate_site2.sh | `remove_license_plate_site2.sh` | same for Site2
+| get_license_plates.sh | `get_license_plates.sh` | `./get_license_plates.sh` (fetch upstream plates)
+| force_delete_visitor.sh / force_delete_visitor_plate.sh | `force_delete_visitor.sh` | `./force_delete_visitor.sh <visitor_id>` / `./force_delete_visitor_plate.sh <visitor_id> "ABC123"`
+
+<br/>
+
+### Maintenance & Data Enrichment (Python)
+
+| Script | Path | Quick usage / note |
+|---|---|---|
+| search_protect_qr.py | `search_protect_qr.py` | `python3 search_protect_qr.py --help` (search QR/PIN events)
+| probe_thumbnail_fetch.py | `probe_thumbnail_fetch.py` | `python3 probe_thumbnail_fetch.py --since 24h` (fetch missing thumbnails)
+| probe_protect_access_events.py | `probe_protect_access_events.py` | `python3 probe_protect_access_events.py --help`
+| migrate_lpr_data.py | `migrate_lpr_data.py` | `python3 migrate_lpr_data.py --dry-run` (migrate/transforms)
+| inspect_enable_vehicle_analytics.py | `inspect_enable_vehicle_analytics.py` | `python3 inspect_enable_vehicle_analytics.py`
+| enrich_thumbnails_24h.py | `enrich_thumbnails_24h.py` | `python3 enrich_thumbnails_24h.py` (24h backfill)
+| enrich_lpr_records.py | `enrich_lpr_records.py` | `python3 enrich_lpr_records.py --help` (enrich LPR docs)
+| dump_protect_event_metadata.py | `dump_protect_event_metadata.py` | `python3 dump_protect_event_metadata.py`
+| consolidate_lpr_data.py | `consolidate_lpr_data.py` | `python3 consolidate_lpr_data.py --help`
+| clear_lpr_notes.py | `clear_lpr_notes.py` | `python3 clear_lpr_notes.py --dry-run`
+| clean_lpr_mongodb.py | `clean_lpr_mongodb.py` | `python3 clean_lpr_mongodb.py --help`
+| check_thumbnails.py | `check_thumbnails.py` | `python3 check_thumbnails.py --path ./public/thumbnails`
+| backfill_protect_hours.py / backfill_protect_45m.py | `backfill_protect_hours.py` | `python3 backfill_protect_hours.py --start 2026-01-01`
+| scripts/remove_admin_code_sent_audit_logs.py | `scripts/remove_admin_code_sent_audit_logs.py` | cleanup helper
+| scripts/clear_user_actions.py | `scripts/clear_user_actions.py` | cleanup helper
+
+<br/>
+
+### LPR Ingestion & Notifications
+
+| Script | Path | Quick usage / note |
+|---|---|---|
+| LPR_Notifications/fast_lpr_capture.py | `LPR_Notifications/fast_lpr_capture.py` | `python3 LPR_Notifications/fast_lpr_capture.py` (producer)
+| LPR_Notifications/lpr_event_capture.py | `LPR_Notifications/lpr_event_capture.py` | `python3 LPR_Notifications/lpr_event_capture.py`
+| LPR_Notifications/lpr_microservice.py / v2 | `LPR_Notifications/lpr_microservice.py` | long-running microservice; see file for flags
+| LPR_Notifications/lpr_websocket_listener.py | `LPR_Notifications/lpr_websocket_listener.py` | `python3 LPR_Notifications/lpr_websocket_listener.py`
+| LPR_Notifications/query_lpr_plates.py | `LPR_Notifications/query_lpr_plates.py` | `python3 LPR_Notifications/query_lpr_plates.py --help`
+| LPR_Notifications/start_lpr_service.sh | `LPR_Notifications/start_lpr_service.sh` | `./LPR_Notifications/start_lpr_service.sh`
+| LPR_Notifications/test_lpr_integration.sh | `LPR_Notifications/test_lpr_integration.sh` | integration smoke tests
+
+<br/>
+
+### Mongo-Filter & DB validator
+
+| Script | Path | Quick usage / note |
+|---|---|---|
+| Mongo-Filter/apply_validator.sh | `Mongo-Filter/apply_validator.sh` | `./Mongo-Filter/apply_validator.sh` (edit vars at top)
+| Mongo-Filter/backup_and_delete_notes.sh | `Mongo-Filter/backup_and_delete_notes.sh` | `./Mongo-Filter/backup_and_delete_notes.sh`
+| Mongo-Filter/test_insert.sh | `Mongo-Filter/test_insert.sh` | `./Mongo-Filter/test_insert.sh`
+| Mongo-Filter/monitor_write_errors.sh + .py | `Mongo-Filter/monitor_write_errors.sh` | `./Mongo-Filter/monitor_write_errors.sh` (runs `monitor_write_errors.py`)
+| Mongo-Filter/run_monitor.sh | `Mongo-Filter/run_monitor.sh` | run wrapper
+
+<br/>
+
+### Tracking PINs (correlation)
+
+| Script | Path | Quick usage / note |
+|---|---|---|
+| Tracking_PINs/track_pins.py | `Tracking_PINs/track_pins.py` | `python3 Tracking_PINs/track_pins.py --mode api --api-url 'https://example' --start 2026-01-01 --end 2026-01-02 --time-delta 60`
+| Tracking_PINs/run_track.sh | `Tracking_PINs/run_track.sh` | `./Tracking_PINs/run_track.sh`
+| Tracking_PINs/run_fetch_and_match.sh / fetch_window.sh / fetch_pins_7d.sh | `Tracking_PINs/*` | Helpers for common workflows
+
+<br/>
+
+### Docker & container helpers
+
+| Script | Path | Quick usage / note |
+|---|---|---|
+| docker/entrypoint.sh | `docker/entrypoint.sh` | container startup script; used by `docker-compose` |
+| docker/unraid_entrypoint.sh | `docker/unraid_entrypoint.sh` | Unraid-specific entrypoint |
+| scripts/lpr_control.sh | `scripts/lpr_control.sh` | `./scripts/lpr_control.sh start` |
+| scripts/test_startup_catchup.sh | `scripts/test_startup_catchup.sh` | smoke tests |
+
+(These groupings highlight the most commonly used scripts; some folders contain additional helpers and test scripts — open the file for full usage and flags.)
+
+---
 ---
 
 ## Notes & Contributions ✨
 If you want to add more screenshots or update the flows, drop the images into `Pictures/` and update this README with new paths. Contributions to improve documentation, fix UI copy, or add more admin automation are welcome.
+
+---
+
+## Additional Notes & Work-in-progress ✨
+- **Users & Visitors sync** ✅
+  - The server syncs users from the upstream API every **30 minutes** (see `setInterval(fetchAndCacheData, 30 * 60 * 1000)` in `index.js`). Fetched users populate the in-memory cache and are persisted to MongoDB collection `users_cache` with a `lastSync` timestamp.
+  - Visitors are fetched per-user via `/api/visitors`. The server stores per-user results in the `visitors_cache` collection (with `lastSync`) and will return a **stale cached** response if the upstream API is slow or fails (the endpoint returns `cached: true/false` and `stale: true/false`). The UI refreshes visitors when the **Visitors** tab is shown and also runs a background refresh every **2 minutes** (see `public/script.js`).
+
+- **LPR Dashboard — Returns & filters** 🚗
+  - `GET /api/lpr/search` returns:
+    ```json
+    {
+      "results": [ /* detection objects (license_plate, camera_name, timestamp, confidence, vehicle_data, user_name, user_email, etc.) */ ],
+      "pagination": { "page", "limit", "total", "pages" },
+      "query": { /* echoed filters */ },
+      "timestamp": "..."
+    }
+    ```
+    Supports filters: `plate`, `name`, `email`, `camera`, `start_date`, `end_date`, `min_confidence`, `status`, `color`, `vehicle_type`, `owner`, and paging (`page`,`limit`). When no filters are provided, the endpoint returns a paginated list of newest detections.
+  - `GET /api/license-plates` returns `{ total, hours, plates, timestamp }` for quick metrics and `GET /api/license-plates/search/:plate` returns `{ plate, found, detections, timestamp }` for direct plate lookups.
+
+- **Avatars** 🖼️
+  - Avatar images live in `public/avatars/`. The server (`index.js`) looks for avatar cache files under the avatar cache directory and will download from the CDN asynchronously when needed — see the avatar logic around `avatarCacheDir` in `index.js`.
+
+- **LPR Notifications** ⚙️
+  - The `LPR_Notifications/` folder contains the capture & ingestion code that gets LPR events into MongoDB (examples: `lpr_microservice.py`, `lpr_event_capture.py`, `lpr_websocket_listener.py`, `query_mongodb_lpr.py`). Use README files inside that folder for deployment and troubleshooting (`LPR_Notifications/README_LPR.md`, `LPR_QUICK_START.md`).
+
+- **Mongo Filter** 🔒
+  - The `Mongo-Filter/` folder documents and provides scripts to apply a collection validator to `web-portal.license_plates` (see `Mongo-Filter/README.md`). It contains `apply_validator.sh`, `test_insert.sh` and guidance for safely backing up and deleting placeholder/entry/exit/Kiosk records.
+
+- **Installation instructions** 📦
+  - See `Install Instructions/README.md` for Docker compose examples and templates (`docker-compose.yml`, `lpr-capture-compose.yml`) and step-by-step install notes.
+
+- **Tracking PINs** 📌
+  - The `Tracking_PINs/` folder contains scripts to fetch PIN/QR events and cross-reference them with unassigned LPR detections (`track_pins.py`, `run_track.sh`, `sample_query.txt`). It produces CSV match reports and is read-only (no DB writes).
 
 ---
 

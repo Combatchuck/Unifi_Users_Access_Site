@@ -1,6 +1,4 @@
-.env
-node_modules/
 .DS_Store
-.env.local
-npm-debug.log
-dist/
+**/.DS_Store
+Install Instructions/web-portal-lpr.xml
+LPR_Notifications/.DS_Store

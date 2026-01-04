@@ -51,8 +51,160 @@ docker compose logs -f
 
 Tip: the Compose service is configured to use the external network `proxy-in`. Ensure that network exists on your host or adjust the `networks` setting.
 
+### Compose examples
+Below are a few compose snippets showing common patterns.
+
+1) Basic (loads `.env` and runs web portal + mongo):
+
+```yaml
+version: '3.8'
+services:
+  webportal:
+    image: node:lts-alpine
+    env_file: ./.env
+    ports:
+      - '3000:3000'
+    volumes:
+      - './:/app:rw'
+    networks:
+      - proxy-in
+  mongo:
+    image: mongo:latest
+    volumes:
+      - ./mongo-data:/data/db
+networks:
+  proxy-in:
+    external: true
+```
+
+2) Explicit env override (turn LPR off at container level):
+
+```yaml
+version: '3.8'
+services:
+  webportal:
+    image: node:lts-alpine
+    env_file: ./.env
+    environment:
+      - SHOW_LPR_DATA=NO # overrides .env value for this service
+    ports:
+      - '3000:3000'
+    volumes:
+      - './:/app:rw'
+    networks:
+      - proxy-in
+  # Note: LPR capture service not included here (no LPR capture container started)
+networks:
+  proxy-in:
+    external: true
+```
+
+3) Compose with LPR capture service enabled (optional):
+
+```yaml
+version: '3.8'
+services:
+  webportal:
+    image: node:lts-alpine
+    env_file: ./.env
+    ports:
+      - '3000:3000'
+    volumes:
+      - './:/app:rw'
+    networks:
+      - proxy-in
+  mongo:
+    image: mongo:latest
+    volumes:
+      - ./mongo-data:/data/db
+  lpr-capture:
+    image: python:3.11-slim
+    env_file: ./.env
+    command: '/app/docker/unraid_entrypoint.sh'
+    volumes:
+      - './:/app:ro'
+      - './lpr-data:/var/lib/lpr:rw'
+    networks:
+      - proxy-in
+networks:
+  proxy-in:
+    external: true
+```
+
+Notes:
+- Use the second example if you want to intentionally hide LPR-related UI (set `SHOW_LPR_DATA=NO`) — this removes LPR tiles and the `/lpr-dashboard.html` route from the public site.
+- When using `.env` together with `environment:` or passing `-e` in `docker run`, the explicitly set values override `.env` for that run.
+
+
+## Environment configuration (env vars)
+You can provide configuration via environment variables either by setting them directly (shell / docker run) or by using a `.env` file. A sample `.env.example` exists in the repository root — copy it to `.env` and edit values as needed.
+
+- Option A — Use a `.env` file (recommended for local dev):
+  - Create a `.env` at the repository root and add `KEY=value` lines (e.g., `MONGO_URL`, `UNIFA_API_URL`, `UNIFA_BEARER_TOKEN`, `SHOW_LPR_DATA`, `SITE_NAME`).
+  - Docker Compose will automatically load `.env` when run in the same folder. Alternatively explicitly load an env file: `docker compose --env-file ./path/to/.env up -d`.
+
+- Option B — Set variables inline / in your shell:
+  - Example `docker run` with envs: `docker run -e MONGO_URL='mongodb://...' -e UNIFA_API_URL='https://...' ...`
+  - Or export in your shell session: `export MONGO_URL='mongodb://...' && docker compose up -d` (exported shell vars are available to compose).
+
+- Option C — Use `env_file` or `environment` in `docker-compose.yml`:
+  - Example snippet:
+
+```yaml
+services:
+  webportal:
+    env_file:
+      - ./.env
+    environment:
+      - SHOW_LPR_DATA=${SHOW_LPR_DATA}
+```
+
+Notes:
+- Do not commit real secrets. Keep `.env` in `.gitignore` and store credentials securely (Docker secrets, Vault, cloud secrets manager).
+- Values set via `docker run -e` or the `environment:` block in Compose will override values from `.env`/`env_file` for that container instance.
+- For LPR capture, ensure `UNIFI_PROTECT_USERNAME`, `UNIFI_PROTECT_PASSWORD`, or `UNIFI_PROTECT_API_KEY` (preferred) are set for the capture container.
+
+### Filling out `.env.example`
+- Start by copying the template: `cp .env.example .env`
+- Required minimal fields to get the app running locally:
+  - `MONGO_URL` (e.g., `mongodb://localhost:27017/web-portal`)
+  - `UNIFA_API_URL` and `UNIFA_BEARER_TOKEN` (if using upstream Protect/API features)
+  - `EMAIL_HOST`, `EMAIL_PORT`, `EMAIL_USER`, and `EMAIL_PASS` (for invites/emails)
+- Gmail / Google Workspace note:
+  - If you use Gmail for SMTP, **do NOT** use your normal Gmail password. Create an App Password (Account > Security > App Passwords) and set `EMAIL_PASS` to that app password. This is required when 2FA is enabled and is more secure than using your account password.
+- Recommended for production:
+  - Use a secrets manager or Docker secrets for `EMAIL_PASS`, `UNIFA_BEARER_TOKEN`, `UNIFI_PROTECT_API_KEY` instead of plaintext in `.env`.
+  - Set `SHOW_LPR_DATA=NO` if you do not want LPR-related UI exposed publicly.
+  - Set `ADMIN_EMAILS` to a comma-separated list of admin addresses.
+- Quick example (do not use real secrets):
+
+```env
+MONGO_URL=mongodb://wp_admin:S3cret@mongo-host:27017/web-portal
+UNIFA_API_URL=https://api.example.com
+UNIFA_BEARER_TOKEN=eyJhbGciOi...
+EMAIL_HOST=smtp.mail.example.com
+EMAIL_PORT=587
+EMAIL_USER=notify@example.com
+# Using Gmail example: set EMAIL_PASS to an App Password (not your normal password)
+EMAIL_PASS=abcd-efgh-ijkl-mnop
+SHOW_LPR_DATA=YES
+```
+
+If you want, I can add a small `ENVIRONMENT.md` with copyable examples for local, Docker Compose, and production (secrets manager) usage.
+
 ## Unraid Template
 A basic Unraid template (`template.xml`) is included for import into Community Applications. The template pre-populates the common environment variables, ports, and bind-mount for `/app`.
+
+**Unraid templates (where to put them):**
+If you want the templates to be available across your Unraid installs (Community Applications custom templates), place them in the local templates folder on the Unraid host:
+
+```
+/boot/config/plugins/dockerMan/templates-user/
+```
+
+After copying the file(s) there, open Community Applications -> Template Manager and your custom templates will show up for import/edit.
+
+
 
 ## LPR Capture (optional)
 This repository includes LPR capture support in `LPR_Notifications/` and a small capture service that runs independently of the main web portal. If you want to enable LPR capture, follow these notes and examples.
@@ -165,9 +317,4 @@ MONGO_URL=mongodb://wp_admin:S3cret@web-portal-mongo:27017/web-portal
 - The container uses `node:lts-alpine`. The start command runs `npm install` at container start to pick up changes from the mounted repo; for production, consider pre-building a production image.
 - If you prefer a different node image or build flow, update the `image:` or replace the `command` in `docker-compose.yml` or the template.
 
----
-
-If you'd like, I can:
-- Add a pre-built Dockerfile and a small multi-stage build so you don't need to run `npm install` at container start.
-- Create a small healthcheck and restart policy improvements in the Compose file.
 
